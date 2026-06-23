@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, 'feature/**']
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-and-build:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ahouzi_test
+          POSTGRES_USER: ahouzi
+          POSTGRES_PASSWORD: ahouzi_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Génération du client Prisma
+        working-directory: packages/database
+        env:
+          DATABASE_URL: postgresql://ahouzi:ahouzi_password@localhost:5432/ahouzi_test
+        run: npx prisma generate
+
+      - name: Lint du backend
+        working-directory: packages/api
+        run: npm run lint || true
+
+      - name: Build du backend
+        working-directory: packages/api
+        env:
+          DATABASE_URL: postgresql://ahouzi:ahouzi_password@localhost:5432/ahouzi_test
+        run: npm run build
+
+      - name: Build du frontend
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+        run: npm run build
+
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image API
+        run: docker build -t ahouzi/api:latest ./packages/api
+
+      - name: Build image Web
+        run: docker build -t ahouzi/web:latest ./apps/web
