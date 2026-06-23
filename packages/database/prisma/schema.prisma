@@ -1214,7 +1214,7 @@ model Employee {
   disciplinaryActions DisciplinaryAction[]
 
   @@map("employees")
-  @@index([propertyId: { sort: Asc }])
+  @@index([propertyId])
   @@index([status])
   @@index([employeeNumber])
 }
