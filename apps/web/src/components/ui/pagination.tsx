@@ -15,40 +15,46 @@ export function Pagination({ page, totalPages, total, limit, onChange }: Paginat
   const from = (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
 
+  const pages = Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+    if (totalPages <= 5) return i + 1;
+    if (page <= 3) return i + 1;
+    if (page >= totalPages - 2) return totalPages - 4 + i;
+    return page - 2 + i;
+  });
+
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-      <p className="text-sm text-gray-500">
-        {from}–{to} sur <span className="font-medium text-gray-900">{total}</span>
+    <div className="flex items-center justify-between px-5 py-3.5 border-t border-slate-100 bg-slate-50/50">
+      <p className="text-[12px] text-slate-500">
+        <span className="font-semibold text-slate-700">{from}–{to}</span> sur <span className="font-semibold text-slate-700">{total}</span> résultats
       </p>
       <div className="flex items-center gap-1">
         <button
           onClick={() => onChange(page - 1)}
           disabled={page <= 1}
-          className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-700 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-transparent hover:border-slate-200"
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={14} />
         </button>
-        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-          const p = i + 1;
-          return (
-            <button
-              key={p}
-              onClick={() => onChange(p)}
-              className={cn(
-                'w-8 h-8 rounded-lg text-sm font-medium transition-colors',
-                page === p ? 'bg-[#1B2B5E] text-white' : 'hover:bg-gray-100 text-gray-600',
-              )}
-            >
-              {p}
-            </button>
-          );
-        })}
+        {pages.map(p => (
+          <button
+            key={p}
+            onClick={() => onChange(p)}
+            className={cn(
+              'w-8 h-8 flex items-center justify-center rounded-lg text-[12px] font-semibold transition-all',
+              page === p
+                ? 'gradient-indigo text-white shadow-sm'
+                : 'text-slate-500 hover:bg-white hover:text-slate-700 hover:shadow-sm border border-transparent hover:border-slate-200'
+            )}
+          >
+            {p}
+          </button>
+        ))}
         <button
           onClick={() => onChange(page + 1)}
           disabled={page >= totalPages}
-          className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-700 hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-transparent hover:border-slate-200"
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={14} />
         </button>
       </div>
     </div>

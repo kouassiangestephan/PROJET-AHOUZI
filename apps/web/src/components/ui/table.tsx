@@ -16,45 +16,50 @@ interface TableProps<T> {
   keyExtractor: (row: T) => string;
 }
 
-export function Table<T>({ columns, data, loading, emptyMessage = 'Aucune donnée', onRowClick, keyExtractor }: TableProps<T>) {
+export function Table<T>({
+  columns, data, loading, emptyMessage = 'Aucune donnée', onRowClick, keyExtractor
+}: TableProps<T>) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
+      <table className="w-full data-table">
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-100">
-            {columns.map((col) => (
-              <th key={col.key} className={cn('text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap', col.className)}>
-                {col.header}
-              </th>
+          <tr>
+            {columns.map(col => (
+              <th key={col.key} className={col.className}>{col.header}</th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-50">
+        <tbody>
           {loading ? (
             Array.from({ length: 5 }).map((_, i) => (
               <tr key={i}>
-                {columns.map((col) => (
-                  <td key={col.key} className="px-4 py-4">
-                    <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                {columns.map(col => (
+                  <td key={col.key}>
+                    <div className="h-4 bg-slate-100 rounded-lg animate-pulse" />
                   </td>
                 ))}
               </tr>
             ))
           ) : data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-12 text-center text-gray-500 text-sm">
-                {emptyMessage}
+              <td colSpan={columns.length}>
+                <div className="py-14 flex flex-col items-center gap-2 text-slate-400">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                    <span className="text-lg">📭</span>
+                  </div>
+                  <p className="text-[13px] font-medium">{emptyMessage}</p>
+                </div>
               </td>
             </tr>
           ) : (
-            data.map((row) => (
+            data.map(row => (
               <tr
                 key={keyExtractor(row)}
                 onClick={() => onRowClick?.(row)}
-                className={cn('hover:bg-gray-50 transition-colors', onRowClick && 'cursor-pointer')}
+                className={cn(onRowClick && 'cursor-pointer')}
               >
-                {columns.map((col) => (
-                  <td key={col.key} className={cn('px-4 py-3.5 text-sm text-gray-700', col.className)}>
+                {columns.map(col => (
+                  <td key={col.key} className={col.className}>
                     {col.render ? col.render(row) : (row as any)[col.key]}
                   </td>
                 ))}

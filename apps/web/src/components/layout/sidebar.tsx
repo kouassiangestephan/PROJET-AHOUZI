@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Building2, CalendarDays, Users, Bed, Wrench,
-  DollarSign, TrendingDown, UserCog, Package, ShoppingCart, UtensilsCrossed,
-  Wine, ShoppingBag, BarChart3, Settings, ChevronDown, ChevronRight,
-  Hotel, LogOut, Menu, X, Shirt,
+  DollarSign, TrendingDown, UserCog, Package, UtensilsCrossed,
+  Wine, ShoppingBag, BarChart3, Settings, ChevronDown,
+  Hotel, LogOut, Menu, Shirt,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { useRouter } from 'next/navigation';
@@ -16,45 +16,39 @@ import { cn } from '@/lib/utils';
 interface NavItem {
   label: string;
   href?: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
   children?: NavItem[];
+  badge?: string;
+  section?: string;
 }
 
 const navItems: NavItem[] = [
-  { label: 'Tableau de bord', href: '/', icon: LayoutDashboard },
-  { label: 'Propriétés', href: '/properties', icon: Building2 },
+  { label: 'Tableau de bord', href: '/', icon: LayoutDashboard, section: 'PRINCIPAL' },
+  { label: 'Propriétés', href: '/properties', icon: Building2, section: 'EXPLOITATION' },
   { label: 'Réservations', href: '/reservations', icon: CalendarDays },
   { label: 'Clients', href: '/customers', icon: Users },
   { label: 'Housekeeping', href: '/housekeeping', icon: Bed },
   { label: 'Maintenance', href: '/maintenance', icon: Wrench },
   {
-    label: 'Finance',
-    icon: DollarSign,
+    label: 'Finance', icon: DollarSign, section: 'GESTION',
     children: [
-      { label: 'Factures', href: '/finance/invoices', icon: DollarSign },
-      { label: 'Paiements', href: '/finance/payments', icon: DollarSign },
-      { label: 'Caisse', href: '/finance/cash', icon: DollarSign },
-      { label: 'Comptabilité', href: '/finance/accounting', icon: DollarSign },
+      { label: 'Factures & Paiements', href: '/finance', icon: DollarSign },
+      { label: 'Dépenses', href: '/expenses', icon: TrendingDown },
     ],
   },
-  { label: 'Dépenses', href: '/expenses', icon: TrendingDown },
   {
-    label: 'Ressources Humaines',
-    icon: UserCog,
+    label: 'Ressources Humaines', icon: UserCog,
     children: [
-      { label: 'Employés', href: '/hr/employees', icon: UserCog },
-      { label: 'Présences', href: '/hr/attendance', icon: UserCog },
-      { label: 'Congés', href: '/hr/leaves', icon: UserCog },
-      { label: 'Paie', href: '/hr/payroll', icon: UserCog },
+      { label: 'Employés', href: '/hr', icon: UserCog },
     ],
   },
   { label: 'Inventaire', href: '/inventory', icon: Package },
-  { label: 'Blanchisserie', href: '/laundry', icon: Shirt },
+  { label: 'Blanchisserie', href: '/laundry', icon: Shirt, section: 'SERVICES' },
   { label: 'Restaurant', href: '/restaurant', icon: UtensilsCrossed },
   { label: 'Bar', href: '/bar', icon: Wine },
   { label: 'Boutique', href: '/shop', icon: ShoppingBag },
-  { label: 'Rapports', href: '/reports', icon: BarChart3 },
-  { label: 'Paramètres', href: '/settings', icon: Settings },
+  { label: 'Rapports', href: '/reports', icon: BarChart3, section: 'ANALYSE' },
+  { label: 'Paramètres', href: '/settings', icon: Settings, section: 'SYSTÈME' },
 ];
 
 export function Sidebar() {
@@ -62,18 +56,15 @@ export function Sidebar() {
   const { user, logout } = useAuthStore();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['Finance']);
 
   const toggleExpand = (label: string) => {
-    setExpandedItems((prev) =>
-      prev.includes(label) ? prev.filter((i) => i !== label) : [...prev, label],
+    setExpandedItems(prev =>
+      prev.includes(label) ? prev.filter(i => i !== label) : [...prev, label]
     );
   };
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
+  const handleLogout = () => { logout(); router.push('/login'); };
 
   const isActive = (href?: string) => {
     if (!href) return false;
@@ -81,70 +72,106 @@ export function Sidebar() {
     return pathname.startsWith(href);
   };
 
+  const hasActiveChild = (item: NavItem) =>
+    item.children?.some(c => isActive(c.href)) ?? false;
+
+  let lastSection = '';
+
   return (
     <aside
+      style={{ boxShadow: '1px 0 0 #e2e8f0' }}
       className={cn(
-        'flex flex-col h-screen bg-[#1B2B5E] text-white transition-all duration-300 flex-shrink-0',
-        collapsed ? 'w-[70px]' : 'w-[260px]',
+        'flex flex-col h-screen bg-white transition-all duration-300 flex-shrink-0 z-30',
+        collapsed ? 'w-[72px]' : 'w-[270px]',
       )}
     >
       {/* Logo */}
-      <div className="flex items-center h-16 px-4 border-b border-white/10">
-        <div className="bg-amber-400 rounded-xl p-2 flex-shrink-0">
-          <Hotel className="w-6 h-6 text-[#1B2B5E]" />
+      <div className={cn(
+        'flex items-center h-16 border-b border-slate-100 flex-shrink-0',
+        collapsed ? 'px-3 justify-center' : 'px-4'
+      )}>
+        <div className="gradient-indigo rounded-xl p-2 flex-shrink-0 shadow-sm">
+          <Hotel className="w-5 h-5 text-white" />
         </div>
         {!collapsed && (
-          <div className="ml-3">
-            <h1 className="font-bold text-lg leading-none">AHOUZI</h1>
-            <p className="text-amber-300 text-xs">Villas</p>
+          <div className="ml-3 flex-1">
+            <h1 className="font-bold text-base text-slate-800 leading-none">AHOUZI</h1>
+            <p className="text-[11px] text-indigo-500 font-medium mt-0.5">Gestion Hôtelière</p>
           </div>
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="ml-auto text-white/60 hover:text-white"
+          className={cn(
+            'p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors',
+            collapsed && 'hidden'
+          )}
         >
-          {collapsed ? <Menu size={18} /> : <X size={18} />}
+          <Menu size={16} />
         </button>
+        {collapsed && (
+          <button
+            onClick={() => setCollapsed(false)}
+            className="absolute left-16 top-4 w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center shadow-md text-white"
+          >
+            <Menu size={12} />
+          </button>
+        )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-3 px-3">
         {navItems.map((item) => {
+          const showSection = !collapsed && item.section && item.section !== lastSection;
+          if (item.section) lastSection = item.section;
+
           if (item.children) {
-            const isExpanded = expandedItems.includes(item.label);
-            const hasActiveChild = item.children.some((c) => isActive(c.href));
+            const expanded = expandedItems.includes(item.label);
+            const active = hasActiveChild(item);
             return (
               <div key={item.label}>
+                {showSection && (
+                  <p className="nav-section-label">{item.section}</p>
+                )}
                 <button
                   onClick={() => toggleExpand(item.label)}
                   className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
-                    hasActiveChild
-                      ? 'bg-white/15 text-white'
-                      : 'text-white/70 hover:bg-white/10 hover:text-white',
+                    'sidebar-link w-full',
+                    active && 'active'
                   )}
                 >
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span className="icon-wrap">
+                    <item.icon size={16} />
+                  </span>
                   {!collapsed && (
                     <>
-                      <span className="flex-1 text-left">{item.label}</span>
-                      {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                      <span className="flex-1 text-left text-slate-700">{item.label}</span>
+                      <ChevronDown
+                        size={14}
+                        className={cn(
+                          'text-slate-400 transition-transform duration-200',
+                          expanded && 'rotate-180'
+                        )}
+                      />
                     </>
                   )}
                 </button>
-                {!collapsed && isExpanded && (
-                  <div className="ml-4 mt-0.5 space-y-0.5 border-l border-white/10 pl-3">
-                    {item.children.map((child) => (
+                {!collapsed && expanded && (
+                  <div className="ml-11 mt-0.5 mb-1 space-y-0.5">
+                    {item.children.map(child => (
                       <Link
                         key={child.href}
                         href={child.href!}
                         className={cn(
-                          'flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all',
+                          'flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] transition-all',
                           isActive(child.href)
-                            ? 'bg-amber-400 text-[#1B2B5E] font-semibold'
-                            : 'text-white/60 hover:bg-white/10 hover:text-white',
+                            ? 'text-indigo-600 font-semibold bg-indigo-50'
+                            : 'text-slate-500 hover:text-indigo-500 hover:bg-slate-50'
                         )}
                       >
+                        <span className={cn(
+                          'w-1.5 h-1.5 rounded-full flex-shrink-0',
+                          isActive(child.href) ? 'bg-indigo-500' : 'bg-slate-300'
+                        )} />
                         {child.label}
                       </Link>
                     ))}
@@ -155,41 +182,57 @@ export function Sidebar() {
           }
 
           return (
-            <Link
-              key={item.href}
-              href={item.href!}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
-                isActive(item.href)
-                  ? 'bg-amber-400 text-[#1B2B5E] shadow-md'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white',
+            <div key={item.href}>
+              {showSection && (
+                <p className="nav-section-label">{item.section}</p>
               )}
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
+              <Link
+                href={item.href!}
+                className={cn('sidebar-link', isActive(item.href) && 'active')}
+                title={collapsed ? item.label : undefined}
+              >
+                <span className="icon-wrap">
+                  <item.icon size={16} />
+                </span>
+                {!collapsed && (
+                  <span className="text-slate-700">{item.label}</span>
+                )}
+                {!collapsed && item.badge && (
+                  <span className="ml-auto text-[10px] font-bold bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full">
+                    {item.badge}
+                  </span>
+                )}
+              </Link>
+            </div>
           );
         })}
       </nav>
 
-      {/* User */}
-      <div className="border-t border-white/10 p-4">
+      {/* User footer */}
+      <div className="border-t border-slate-100 p-3 flex-shrink-0">
         {!collapsed ? (
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-amber-400 rounded-full flex items-center justify-center text-[#1B2B5E] font-bold text-sm flex-shrink-0">
+          <div className="flex items-center gap-3 px-1">
+            <div className="w-9 h-9 gradient-indigo rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
               {user?.firstName?.[0]}{user?.lastName?.[0]}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.firstName} {user?.lastName}</p>
-              <p className="text-xs text-white/50 truncate">{user?.role}</p>
+              <p className="text-[13px] font-semibold text-slate-800 truncate">{user?.firstName} {user?.lastName}</p>
+              <p className="text-[11px] text-slate-400 truncate">{user?.role?.replace(/_/g, ' ')}</p>
             </div>
-            <button onClick={handleLogout} className="text-white/50 hover:text-red-400 transition-colors">
-              <LogOut size={16} />
+            <button
+              onClick={handleLogout}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+              title="Déconnexion"
+            >
+              <LogOut size={15} />
             </button>
           </div>
         ) : (
-          <button onClick={handleLogout} className="w-full flex justify-center text-white/50 hover:text-red-400">
-            <LogOut size={18} />
+          <button
+            onClick={handleLogout}
+            className="w-full flex justify-center p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+          >
+            <LogOut size={16} />
           </button>
         )}
       </div>
