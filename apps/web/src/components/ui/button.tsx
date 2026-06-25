@@ -20,11 +20,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: keyof typeof variants;
   size?: keyof typeof sizes;
   loading?: boolean;
+  icon?: React.ReactNode;
   children: React.ReactNode;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', loading, className, children, disabled, ...props }, ref) => (
+  ({ variant = 'primary', size = 'md', loading, icon, className, children, disabled, ...props }, ref) => (
     <button
       ref={ref}
       disabled={disabled || loading}
@@ -36,7 +37,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       )}
       {...props}
     >
-      {loading && <Loader2 size={13} className="animate-spin flex-shrink-0" />}
+      {loading ? <Loader2 size={13} className="animate-spin flex-shrink-0" /> : icon}
       {children}
     </button>
   ),

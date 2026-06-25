@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 
-export function useList<T>(key: string, endpoint: string, params?: Record<string, any>) {
+export function useList<T>(endpoint: string, params?: Record<string, any>) {
   return useQuery<{ data: T[]; pagination?: any }>({
-    queryKey: [key, params],
+    queryKey: [endpoint, params],
     queryFn: async () => {
       const res = await api.get(endpoint, { params });
       return res.data;
@@ -11,9 +11,9 @@ export function useList<T>(key: string, endpoint: string, params?: Record<string
   });
 }
 
-export function useOne<T>(key: string, endpoint: string, id?: string) {
+export function useOne<T>(endpoint: string, id?: string) {
   return useQuery<{ data: T }>({
-    queryKey: [key, id],
+    queryKey: [endpoint, id],
     queryFn: async () => {
       const res = await api.get(`${endpoint}/${id}`);
       return res.data;
@@ -22,7 +22,7 @@ export function useOne<T>(key: string, endpoint: string, id?: string) {
   });
 }
 
-export function useCreate<T>(endpoint: string, queryKey: string) {
+export function useCreate<T>(endpoint: string) {
   const queryClient = useQueryClient();
   return useMutation<{ data: T; message: string }, Error, Partial<T>>({
     mutationFn: async (data) => {
@@ -30,12 +30,12 @@ export function useCreate<T>(endpoint: string, queryKey: string) {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      queryClient.invalidateQueries({ queryKey: [endpoint] });
     },
   });
 }
 
-export function useUpdate<T>(endpoint: string, queryKey: string) {
+export function useUpdate<T>(endpoint: string) {
   const queryClient = useQueryClient();
   return useMutation<{ data: T; message: string }, Error, { id: string; data: Partial<T> }>({
     mutationFn: async ({ id, data }) => {
@@ -43,12 +43,12 @@ export function useUpdate<T>(endpoint: string, queryKey: string) {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      queryClient.invalidateQueries({ queryKey: [endpoint] });
     },
   });
 }
 
-export function useAction(endpoint: string, queryKey: string) {
+export function useAction(endpoint: string) {
   const queryClient = useQueryClient();
   return useMutation<any, Error, { id: string; action: string; data?: any }>({
     mutationFn: async ({ id, action, data }) => {
@@ -56,7 +56,7 @@ export function useAction(endpoint: string, queryKey: string) {
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      queryClient.invalidateQueries({ queryKey: [endpoint] });
     },
   });
 }
